@@ -492,6 +492,158 @@ Automatic Scale Down
 
 ---
 
+# CI/CD Pipeline
+
+KubeDeploy includes automated CI/CD workflows using GitHub Actions.
+
+The pipeline is triggered whenever code is pushed to the `main` branch.
+
+The CI workflow performs:
+
+```text
+GitHub Push
+    |
+    v
+Checkout Repository
+    |
+    v
+Set Up Python
+    |
+    v
+Install Dependencies
+    |
+    v
+Validate FastAPI Application
+    |
+    v
+Build Docker Image
+    |
+    v
+Validate Kubernetes Manifests
+    |
+    v
+CI Success
+```
+
+The Kubernetes manifests are validated using `kubeconform`, allowing schema validation to run without requiring a live Kubernetes cluster.
+
+---
+
+# Container Image Publishing
+
+A separate GitHub Actions workflow automatically builds and publishes the KubeDeploy Docker image to GitHub Container Registry.
+
+The published image is:
+
+```text
+ghcr.io/kvngmuhy94/kubedeploy-kubernetes-platform:latest
+```
+
+The workflow also publishes a commit-specific image tag using the Git commit SHA.
+
+This provides both:
+
+- A convenient `latest` image
+- Immutable image versions tied to individual Git commits
+
+---
+
+# Multi-Architecture Docker Images
+
+KubeDeploy publishes multi-platform Docker images supporting:
+
+```text
+linux/amd64
+linux/arm64
+```
+
+This allows the same container image to run on:
+
+- Intel/AMD Linux systems
+- Apple Silicon systems
+- Compatible Kubernetes environments
+
+GitHub Actions uses Docker Buildx and QEMU to build the multi-platform image.
+
+---
+
+# Registry-Backed Kubernetes Deployment
+
+The Kubernetes Deployment uses the published GitHub Container Registry image:
+
+```yaml
+image: ghcr.io/kvngmuhy94/kubedeploy-kubernetes-platform:latest
+```
+
+This means Kubernetes no longer depends on a locally built Docker image.
+
+The deployment workflow is now:
+
+```text
+Application Code
+      |
+      v
+GitHub Repository
+      |
+      v
+GitHub Actions CI
+      |
+      +----> Python Validation
+      |
+      +----> Docker Build
+      |
+      +----> Kubernetes Manifest Validation
+      |
+      v
+GitHub Container Registry
+      |
+      v
+Multi-Architecture Docker Image
+      |
+      v
+Kubernetes Deployment
+      |
+      v
+Application Pods
+      |
+      v
+Health + Readiness Validation
+```
+
+---
+
+# CI/CD Validation
+
+The automated pipeline was successfully tested for:
+
+- GitHub push triggers
+- Python dependency installation
+- FastAPI syntax validation
+- Docker image builds
+- Kubernetes manifest validation using kubeconform
+- GHCR authentication
+- Docker image publishing
+- Multi-platform image builds
+- ARM64 image pulling
+- Kubernetes deployment from GHCR
+- Successful rollout
+- Health endpoint validation
+- Readiness endpoint validation
+
+Final application checks returned:
+
+```json
+{"status":"healthy"}
+```
+
+and:
+
+```json
+{"status":"ready"}
+```
+
+---
+
 # Kubernetes Resources
 
 The project uses the following manifests:
@@ -630,6 +782,17 @@ KubeDeploy demonstrates practical experience with:
 - kubectl
 - Git
 - GitHub
+-  CI/CD and Container Registry
+
+- GitHub Actions
+- Automated CI pipelines
+- Automated Docker builds
+- GitHub Container Registry
+- Docker Buildx
+- QEMU
+- Multi-architecture images
+- kubeconform
+- Registry-backed Kubernetes deployment
 
 ---
 
@@ -664,6 +827,11 @@ The project was tested successfully for:
 **KubeDeploy is operationally validated.**
 
 The application has successfully demonstrated deployment, configuration management, health checking, self-healing, resource management, metrics collection, and automatic horizontal scaling in Kubernetes.
+# Project Status
+
+**KubeDeploy is complete and operationally validated.**
+
+The project now demonstrates an end-to-end DevOps workflow covering application development, containerisation, Kubernetes orchestration, health monitoring, self-healing, autoscaling, automated CI validation, multi-architecture Docker image publishing, GitHub Container Registry integration, and Kubernetes deployment from a remote container registry.
 
 ---
 
