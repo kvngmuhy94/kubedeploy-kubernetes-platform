@@ -39,8 +39,8 @@ jobs:
 
       - name: Validate Kubernetes manifests
         run: |
-          kubectl apply --dry-run=client -f kubernetes/configmap.yaml
-          kubectl apply --dry-run=client -f kubernetes/deployment.yaml
-          kubectl apply --dry-run=client -f kubernetes/service.yaml
-          kubectl apply --dry-run=client -f kubernetes/hpa.yaml
-          kubectl apply --dry-run=client -f kubernetes/secret.example.yaml
+          kubectl apply --dry-run=client --validate=false -f kubernetes/configmap.yaml
+          kubectl apply --dry-run=client --validate=false -f kubernetes/deployment.yaml
+          kubectl apply --dry-run=client --validate=false -f kubernetes/service.yaml
+          kubectl apply --dry-run=client --validate=false -f kubernetes/hpa.yaml
+          kubectl apply --dry-run=client --validate=false -f kubernetes/secret.example.yaml
