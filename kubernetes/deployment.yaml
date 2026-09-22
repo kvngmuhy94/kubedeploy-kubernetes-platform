@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: kubedeploy
-          image: kubedeploy:latest
+          image: ghcr.io/kvngmuhy94/kubedeploy-kubernetes-platform:latest
           imagePullPolicy: IfNotPresent
 
           resources:
