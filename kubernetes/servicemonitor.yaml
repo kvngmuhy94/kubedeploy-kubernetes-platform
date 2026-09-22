@@ -1,0 +1,14 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kubedeploy
+  labels:
+    release: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: kubedeploy
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
