@@ -30,45 +30,55 @@ The application is deployed using Kubernetes manifests and includes:
 
 The project was built and tested using Docker Desktop Kubernetes.
 
----
+Then paste this in its place:
 
+```markdown
 # Solution Architecture
 
-```mermaid
-flowchart TD
+```text
+Developer
+   |
+   v
+GitHub Repository
+   |
+   v
+Docker Image
+   |
+   v
+Kubernetes Cluster
+   |
+   v
+Kubernetes Deployment
+   |
+   +----------------------+
+   |                      |
+   v                      v
+FastAPI Pod 1        FastAPI Pod 2
+   ^                      ^
+   |                      |
+   +------ ConfigMap -----+
+   +------- Secret -------+
 
-    DEV[Developer]
-    DEV --> GIT[GitHub Repository]
+Client / Port Forward
+          |
+          v
+   ClusterIP Service
+          |
+          +----------> Pod 1
+          |
+          +----------> Pod 2
 
-    GIT --> IMAGE[Docker Image]
-    IMAGE --> K8S[Kubernetes Cluster]
-
-    K8S --> DEPLOY[Deployment]
-
-    DEPLOY --> POD1[FastAPI Pod]
-    DEPLOY --> POD2[FastAPI Pod]
-
-    CONFIG[ConfigMap] --> POD1
-    CONFIG --> POD2
-
-    SECRET[Kubernetes Secret] --> POD1
-    SECRET --> POD2
-
-    SERVICE[ClusterIP Service] --> POD1
-    SERVICE --> POD2
-
-    USER[Client / Port Forward] --> SERVICE
-
-    POD1 --> HEALTH[/health]
-    POD1 --> READY[/ready]
-
-    METRICS[Metrics Server] --> HPA[Horizontal Pod Autoscaler]
-    HPA --> DEPLOY
-
-    HPA --> SCALE[Scale 2-6 Pods]
-```
-
----
+Metrics Server
+      |
+      v
+Horizontal Pod Autoscaler
+      |
+      v
+Kubernetes Deployment
+      |
+      v
+Automatic Scaling
+2 Pods  <----->  6 Pods
 
 # Technology Stack
 
