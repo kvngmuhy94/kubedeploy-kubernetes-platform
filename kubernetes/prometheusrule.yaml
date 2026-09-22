@@ -1,0 +1,80 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kubedeploy-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: kubedeploy.rules
+      rules:
+        - alert: KubeDeployServiceDown
+          expr: min(up{job="kubedeploy-service"}) == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "KubeDeploy service is down"
+            description: "Prometheus cannot reach one or more KubeDeploy targets."
+
+        - alert: KubeDeployHighCPU
+          expr: |
+            sum(
+              rate(
+                container_cpu_usage_seconds_total{
+                  pod=~"kubedeploy-.*"
+                }[5m]
+              )
+            ) > 0.5
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "KubeDeploy CPU usage is high"
+            description: "KubeDeploy CPU usage has remained above the configured threshold."
+
+        - alert: KubeDeployHighMemory
+          expr: |
+            sum(
+              container_memory_working_set_bytes{
+                pod=~"kubedeploy-.*"
+              }
+            ) > 268435456
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "KubeDeploy memory usage is high"
+            description: "KubeDeploy is using more than 256 MiB of memory."
+
+        - alert: KubeDeployHTTPErrorRate
+          expr: |
+            sum(
+              rate(
+                http_requests_total{
+                  job="kubedeploy-service",
+                  status=~"4..|5.."
+                }[5m]
+              )
+            ) > 0.1
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "KubeDeploy HTTP errors detected"
+            description: "The application is returning an elevated rate of 4xx or 5xx responses."
+
+        - alert: KubeDeployReplicasUnavailable
+          expr: |
+            kube_deployment_status_replicas_available{
+              namespace="default",
+              deployment="kubedeploy"
+            } < 2
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "KubeDeploy replicas unavailable"
+            description: "Fewer than 2 KubeDeploy replicas are currently available."
+
