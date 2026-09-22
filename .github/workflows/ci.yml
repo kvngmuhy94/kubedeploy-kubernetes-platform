@@ -34,13 +34,21 @@ jobs:
         run: |
           docker build -t kubedeploy:ci .
 
-      - name: Install kubectl
-        uses: azure/setup-kubectl@v4
+      - name: Install kubeconform
+        run: |
+          curl -L \
+            https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz \
+            -o kubeconform.tar.gz
+          tar -xzf kubeconform.tar.gz
+          sudo mv kubeconform /usr/local/bin/kubeconform
 
       - name: Validate Kubernetes manifests
         run: |
-          kubectl apply --dry-run=client --validate=false -f kubernetes/configmap.yaml
-          kubectl apply --dry-run=client --validate=false -f kubernetes/deployment.yaml
-          kubectl apply --dry-run=client --validate=false -f kubernetes/service.yaml
-          kubectl apply --dry-run=client --validate=false -f kubernetes/hpa.yaml
-          kubectl apply --dry-run=client --validate=false -f kubernetes/secret.example.yaml
+          kubeconform \
+            -strict \
+            -summary \
+            kubernetes/configmap.yaml \
+            kubernetes/deployment.yaml \
+            kubernetes/service.yaml \
+            kubernetes/hpa.yaml \
+            kubernetes/secret.example.yaml
