@@ -891,3 +891,62 @@ Potential future improvements include:
 Cloud / DevOps Portfolio Project
 
 KubeDeploy was built as a practical demonstration of Kubernetes deployment, orchestration, monitoring, scaling, configuration management, and operational recovery.
+
+## Monitoring and Observability
+
+KubeDeploy includes a full monitoring stack using Prometheus and Grafana.
+
+### Monitoring Stack
+
+- Prometheus
+- Grafana
+- kube-prometheus-stack
+- ServiceMonitor
+- Kubernetes metrics
+- Application metrics
+- CPU and memory monitoring
+- Health monitoring
+- Replica monitoring
+
+### Application Metrics
+
+The FastAPI application exposes Prometheus metrics through:
+
+```text
+/metrics
+
+```
+
+Prometheus automatically discovers the application using a Kubernetes `ServiceMonitor`.
+
+### Grafana Dashboard
+
+The Grafana dashboard includes:
+
+- KubeDeploy Request Rate
+- HTTP Responses by Status
+- 95th Percentile Response Time
+- Running KubeDeploy Pods
+- KubeDeploy CPU Usage
+- KubeDeploy Memory Usage
+- KubeDeploy HTTP Error Rate
+- KubeDeploy Service Health
+- Available Replicas
+
+The dashboard definition is stored in:
+
+```text
+monitoring/grafana/kubedeploy-dashboard.json
+```
+
+This allows the dashboard to be recreated rather than relying on a manually configured Grafana instance.
+
+### Prometheus ServiceMonitor
+
+The ServiceMonitor configuration is located at:
+
+```text
+kubernetes/servicemonitor.yaml
+```
+
+Prometheus scrapes KubeDeploy application metrics from `/metrics`.
