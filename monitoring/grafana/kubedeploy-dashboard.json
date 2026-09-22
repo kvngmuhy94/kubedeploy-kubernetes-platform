@@ -1,4 +1,3 @@
-mkdir -p monitoring/grafana
 {
   "apiVersion": "dashboard.grafana.app/v2",
   "kind": "Dashboard",
