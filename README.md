@@ -983,3 +983,54 @@ Rollout Verification
       v
 Application Health Check
 
+## AWS EKS Deployment
+
+KubeDeploy is deployed to Amazon Elastic Kubernetes Service (EKS) in the `eu-west-2` region.
+
+The EKS environment includes:
+
+- Amazon EKS managed Kubernetes control plane
+- Managed EC2 worker node group
+- Kubernetes Deployment running multiple KubeDeploy replicas
+- Kubernetes ConfigMap and Secret integration
+- Readiness and health checks
+- Kubernetes Service exposed through an AWS LoadBalancer
+- Public `/health` endpoint
+- GitHub Actions CI/CD integration
+- Automated deployment verification
+- Automatic rollback for failed deployments
+
+### AWS Deployment Flow
+
+```text
+Developer Push
+      |
+      v
+GitHub Repository
+      |
+      v
+GitHub Actions CI
+      |
+      v
+Docker Image Build
+      |
+      v
+GitHub Container Registry
+      |
+      v
+AWS EKS Cluster
+      |
+      v
+Kubernetes Deployment
+      |
+      v
+KubeDeploy Pods
+      |
+      v
+Kubernetes LoadBalancer Service
+      |
+      v
+AWS Elastic Load Balancer
+      |
+      v
+Public Application Endpoint
