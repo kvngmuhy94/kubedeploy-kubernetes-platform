@@ -38,6 +38,19 @@ jobs:
           kubectl rollout undo deployment/kubedeploy
           kubectl rollout status deployment/kubedeploy --timeout=180s
 
+      - name: Application health check
+        if: steps.rollout.outcome == 'success'
+        run: |
+          kubectl port-forward svc/kubedeploy-service 8080:80 >/tmp/kubedeploy-portforward.log 2>&1 &
+          PF_PID=$!
+
+          sleep 5
+
+          curl --fail --silent --show-error \
+            http://127.0.0.1:8080/health
+
+          kill $PF_PID
+
       - name: Verify deployment
         if: steps.rollout.outcome == 'success'
         run: |
