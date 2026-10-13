@@ -1114,3 +1114,24 @@ AWS Elastic Load Balancer
       |
       v
 Public Application Endpoint
+## Infrastructure as Code with Terraform
+
+KubeDeploy can be provisioned on AWS EKS using Terraform.
+
+The Terraform configuration creates:
+
+- Dedicated VPC
+- Two public subnets across availability zones
+- Internet Gateway
+- Public route table and associations
+- EKS control plane
+- Managed EKS worker node group
+- IAM roles and required AWS policies
+
+### Deploy
+
+```bash
+cd terraform
+terraform init
+terraform plan
+terraform apply
