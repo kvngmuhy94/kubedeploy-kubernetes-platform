@@ -6,3 +6,6 @@ kubernetes/secret.yaml
 certs/
 
 actions-runner/
+terraform.tfstate
+*.tfstate
+*.tfstate.*

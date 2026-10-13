@@ -1,1058 +1,184 @@
 # KubeDeploy
 
-## Kubernetes Application Deployment & Autoscaling Platform
+> **Production-style Kubernetes & AWS EKS DevOps portfolio project** demonstrating containerisation, Infrastructure as Code, CI/CD, observability, autoscaling, health checks, automated rollout verification, rollback, and cloud resource lifecycle management.
 
-KubeDeploy is a hands-on Kubernetes and DevOps portfolio project demonstrating how a containerised FastAPI application can be deployed, configured, monitored, scaled, and automatically recovered using Kubernetes.
-
-The project demonstrates the operational lifecycle:
-
-**Build → Containerise → Deploy → Configure → Monitor → Scale → Recover**
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-Orchestration-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
+[![AWS EKS](https://img.shields.io/badge/AWS-EKS-FF9900?logo=amazonaws&logoColor=white)](https://aws.amazon.com/eks/)
+[![Terraform](https://img.shields.io/badge/Terraform-IaC-844FBA?logo=terraform&logoColor=white)](https://www.terraform.io/)
+[![Docker](https://img.shields.io/badge/Docker-Containerised-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-CI%2FCD-2088FF?logo=githubactions&logoColor=white)](https://github.com/features/actions)
+[![Prometheus](https://img.shields.io/badge/Prometheus-Monitoring-E6522C?logo=prometheus&logoColor=white)](https://prometheus.io/)
+[![Grafana](https://img.shields.io/badge/Grafana-Observability-F46800?logo=grafana&logoColor=white)](https://grafana.com/)
 
 ---
 
-## Project Overview
+## Project Summary
 
-KubeDeploy runs a Python FastAPI application inside Docker containers managed by Kubernetes.
+KubeDeploy is an end-to-end DevOps project built around a Python FastAPI application.
 
-The application is deployed using Kubernetes manifests and includes:
+The project started as a local containerised application, progressed into a resilient Kubernetes workload, and was then deployed to **Amazon EKS in eu-west-2** using **Terraform**.
 
+It demonstrates the complete delivery and operations lifecycle:
+
+**Build → Containerise → Validate → Publish → Provision → Deploy → Monitor → Scale → Recover → Destroy**
+
+The AWS environment was successfully created, validated, exposed through an AWS Load Balancer, tested through the public health endpoint, and then safely destroyed to avoid unnecessary cloud costs.
+
+---
+
+## What This Project Demonstrates
+
+- Docker containerisation
+- Kubernetes Deployments and Services
 - Multiple application replicas
-- ClusterIP service networking
-- Liveness probes
-- Readiness probes
-- ConfigMaps
-- Kubernetes Secrets
+- Liveness and readiness probes
+- ConfigMaps and Secrets
 - CPU and memory resource controls
-- Metrics Server
 - Horizontal Pod Autoscaling
 - Kubernetes self-healing
-- Automatic scale-up and scale-down
+- GitHub Actions CI/CD
+- GitHub Container Registry
+- Multi-architecture Docker images
+- Automated rollout verification
+- Post-deployment health checks
+- Automatic rollback
+- Prometheus monitoring
+- Grafana dashboards
+- Alertmanager email notifications
+- AWS EKS
+- AWS Load Balancer
+- Terraform Infrastructure as Code
+- AWS IAM and networking
+- Infrastructure teardown and dependency troubleshooting
 
-The project was built and tested using Docker Desktop Kubernetes.
+---
 
-Then paste this in its place:
 ## Architecture
 
-```text
-                         ┌──────────────────────┐
-                         │      Developer       │
-                         └──────────┬───────────┘
-                                    │
-                                    ▼
-                         ┌──────────────────────┐
-                         │        GitHub        │
-                         │      Repository      │
-                         └──────────┬───────────┘
-                                    │
-                                    ▼
-                         ┌──────────────────────┐
-                         │    GitHub Actions    │
-                         │      CI / CD         │
-                         └──────────┬───────────┘
-                                    │
-                    ┌───────────────┼───────────────┐
-                    │               │               │
-                    ▼               ▼               ▼
-             ┌────────────┐  ┌────────────┐  ┌────────────┐
-             │ CI / Tests │  │Docker Build│  │ Kubernetes │
-             │ Validation │  │ + GHCR Push│  │ Deployment │
-             └────────────┘  └──────┬─────┘  └──────┬─────┘
-                                    │               │
-                                    └───────┬───────┘
-                                            ▼
-                                  ┌──────────────────┐
-                                  │     AWS EKS      │
-                                  │ kubedeploy-eks   │
-                                  └────────┬─────────┘
-                                           │
-                              ┌────────────┴────────────┐
-                              │                         │
-                              ▼                         ▼
-                     ┌────────────────┐        ┌────────────────┐
-                     │ KubeDeploy Pod │        │ KubeDeploy Pod │
-                     │       1        │        │       2        │
-                     └────────┬───────┘        └────────┬───────┘
-                              │                         │
-                              └────────────┬────────────┘
-                                           ▼
-                                  ┌──────────────────┐
-                                  │ Kubernetes       │
-                                  │ LoadBalancer     │
-                                  │ Service          │
-                                  └────────┬─────────┘
-                                           │
-                                           ▼
-                                  ┌──────────────────┐
-                                  │ AWS Load Balancer│
-                                  └────────┬─────────┘
-                                           │
-                                           ▼
-                                  ┌──────────────────┐
-                                  │ Public Endpoint  │
-                                  │     /health      │
-                                  └──────────────────┘
-
-
-Monitoring and Alerting
-
-KubeDeploy Pods
-      │
-      ▼
-┌───────────────┐
-│  Prometheus   │
-└───────┬───────┘
-        │
-        ├──────────────► Grafana
-        │                 Dashboards
-        │
-        ▼
-┌───────────────┐
-│ Alertmanager  │
-└───────┬───────┘
-        │
-        ▼
-   Email Alerts
-```markdown
-# Solution Architecture
-
-```text
+\`\`\`text
 Developer
    |
    v
 GitHub Repository
    |
    v
-Docker Image
+GitHub Actions
    |
-   v
-Kubernetes Cluster
+   +-----------------------+
+   |                       |
+   v                       v
+CI Validation         Docker Build
+                           |
+                           v
+                  GitHub Container Registry
+                           |
+                           v
+                        AWS EKS
+                           |
+                  +--------+--------+
+                  |                 |
+                  v                 v
+           KubeDeploy Pod 1  KubeDeploy Pod 2
+                  |                 |
+                  +--------+--------+
+                           |
+                           v
+                 Kubernetes Service
+                           |
+                           v
+                  AWS Load Balancer
+                           |
+                           v
+                    Public Endpoint
+
+
+Monitoring
+----------
+KubeDeploy
+    |
+    v
+Prometheus
+  |      |
+  |      +----> Grafana
+  |
+  +-----------> Alertmanager
+                    |
+                    v
+               Email Alerts
+
+
+Infrastructure
+--------------
+Terraform
    |
-   v
-Kubernetes Deployment
-   |
-   +----------------------+
-   |                      |
-   v                      v
-FastAPI Pod 1        FastAPI Pod 2
-   ^                      ^
-   |                      |
-   +------ ConfigMap -----+
-   +------- Secret -------+
+   +--> VPC
+   +--> Public Subnets
+   +--> Internet Gateway
+   +--> Route Table
+   +--> IAM Roles
+   +--> EKS Cluster
+   +--> Managed Node Group
+\`\`\`
 
-Client / Port Forward
-          |
-          v
-   ClusterIP Service
-          |
-          +----------> Pod 1
-          |
-          +----------> Pod 2
+---
 
-Metrics Server
-      |
-      v
-Horizontal Pod Autoscaler
-      |
-      v
-Kubernetes Deployment
-      |
-      v
-Automatic Scaling
-2 Pods  <----->  6 Pods
+## Technology Stack
 
-# Technology Stack
-
-| Technology | Purpose |
+| Area | Technologies |
 |---|---|
-| Python | Application development |
-| FastAPI | REST API |
-| Uvicorn | ASGI server |
-| Docker | Containerisation |
-| Kubernetes | Container orchestration |
-| Docker Desktop | Local Kubernetes cluster |
-| kubectl | Kubernetes administration |
-| Metrics Server | CPU and memory metrics |
-| HPA | Automatic pod scaling |
-| ConfigMap | Application configuration |
-| Secret | Sensitive configuration |
-| Git | Version control |
-| GitHub | Source repository |
+| Application | Python, FastAPI, Uvicorn |
+| Containers | Docker, Docker Buildx |
+| Orchestration | Kubernetes, kubectl |
+| Cloud | AWS EKS, EC2, ELB, IAM, VPC |
+| Infrastructure as Code | Terraform |
+| CI/CD | GitHub Actions |
+| Registry | GitHub Container Registry |
+| Monitoring | Prometheus |
+| Visualisation | Grafana |
+| Alerting | Alertmanager |
+| Scaling | Kubernetes HPA, Metrics Server |
+| Validation | kubeconform, health checks |
+| Version Control | Git, GitHub |
 
 ---
 
-# Application Endpoints
+## Application Endpoints
 
-## Root
-
-```text
-/
-```
-
-Confirms the KubeDeploy API is running.
-
-## Health Check
-
-```text
-/health
-```
+| Endpoint | Purpose |
+|---|---|
+| `/` | Confirms the API is running |
+| `/health` | Health validation |
+| `/ready` | Readiness validation |
+| `/metrics` | Prometheus metrics |
+| `/docs` | FastAPI Swagger documentation |
 
 Example:
 
-```json
-{
-  "status": "healthy"
-}
-```
-
-## Readiness Check
-
-```text
-/ready
-```
-
-Example:
-
-```json
-{
-  "status": "ready"
-}
-```
-
-## API Documentation
-
-```text
-/docs
-```
-
-FastAPI provides interactive Swagger/OpenAPI documentation.
-
----
-
-# Docker Container
-
-The application is packaged into a Docker image.
-
-Build:
-
-```bash
-docker build -t kubedeploy:latest .
-```
-
-Local test:
-
-```bash
-docker run -d \
-  --name kubedeploy \
-  -p 8001:8000 \
-  kubedeploy:latest
-```
-
-Health validation:
-
-```bash
-curl http://localhost:8001/health
-```
-
----
-
-# Kubernetes Deployment
-
-The application is managed through a Kubernetes Deployment.
-
-Default configuration:
-
-```text
-Replicas: 2
-Container Port: 8000
-Image: kubedeploy:latest
-```
-
-Deployment:
-
-```bash
-kubectl apply -f kubernetes/deployment.yaml
-```
-
-Verify:
-
-```bash
-kubectl get deployments
-kubectl get pods
-```
-
----
-
-# Kubernetes Service
-
-A ClusterIP Service provides stable internal networking between Kubernetes and the application pods.
-
-Apply:
-
-```bash
-kubectl apply -f kubernetes/service.yaml
-```
-
-Access locally:
-
-```bash
-kubectl port-forward service/kubedeploy-service 8080:80
-```
-
-Test:
-
-```bash
-curl http://localhost:8080/health
-curl http://localhost:8080/ready
-```
-
----
-
-# Health Monitoring
-
-KubeDeploy uses Kubernetes probes to continuously evaluate application health.
-
-## Readiness Probe
-
-```text
-Endpoint: /ready
-Port: 8000
-Initial delay: 5 seconds
-Period: 10 seconds
-```
-
-The readiness probe determines whether a pod should receive traffic.
-
-## Liveness Probe
-
-```text
-Endpoint: /health
-Port: 8000
-Initial delay: 10 seconds
-Period: 15 seconds
-```
-
-The liveness probe allows Kubernetes to detect unhealthy application containers.
-
----
-
-# Kubernetes Self-Healing
-
-Kubernetes self-healing was validated by manually deleting an application pod.
-
-Example:
-
-```bash
-kubectl delete pod <pod-name>
-```
-
-The Deployment immediately detected that the desired replica count was no longer satisfied and automatically created a replacement pod.
-
-The application returned to:
-
-```text
-2/2 Running
-```
-
-without manually recreating the deleted pod.
-
-This demonstrates Kubernetes desired-state reconciliation.
-
----
-
-# Manual Scaling
-
-The Deployment was manually scaled from two replicas to four replicas:
-
-```bash
-kubectl scale deployment kubedeploy --replicas=4
-```
-
-Validation:
-
-```text
-READY:       4/4
-UP-TO-DATE:  4
-AVAILABLE:   4
-```
-
-The Deployment was subsequently returned to two replicas.
-
----
-
-# ConfigMap
-
-Non-sensitive runtime configuration is managed using a Kubernetes ConfigMap.
-
-Configured values include:
-
-```text
-APP_ENV=kubernetes
-APP_NAME=KubeDeploy
-```
-
-Apply:
-
-```bash
-kubectl apply -f kubernetes/configmap.yaml
-```
-
-The configuration is injected into application pods using `envFrom`.
-
-The values were validated from inside a running pod.
-
----
-
-# Kubernetes Secrets
-
-Sensitive configuration is handled separately using Kubernetes Secrets.
-
-The real local secret file is:
-
-```text
-kubernetes/secret.yaml
-```
-
-This file is intentionally excluded from Git using `.gitignore`.
-
-A safe example is included:
-
-```text
-kubernetes/secret.example.yaml
-```
-
-Example:
-
-```yaml
-stringData:
-  API_KEY: "replace-with-your-secret"
-```
-
-This demonstrates how sensitive runtime configuration can be kept separate from normal application configuration.
-
----
-
-# Resource Management
-
-Each application pod defines CPU and memory requests and limits.
-
-```text
-Requests:
-CPU:    100m
-Memory: 64Mi
-
-Limits:
-CPU:    250m
-Memory: 128Mi
-```
-
-Requests help Kubernetes schedule workloads appropriately.
-
-Limits prevent individual containers from consuming excessive cluster resources.
-
----
-
-# Kubernetes Metrics
-
-Metrics Server was installed to provide live resource usage information.
-
-Example:
-
-```bash
-kubectl top pods
-```
-
-This provides:
-
-- Pod CPU usage
-- Pod memory usage
-
-Metrics are also used by the Horizontal Pod Autoscaler.
-
----
-
-# Horizontal Pod Autoscaling
-
-KubeDeploy includes a Horizontal Pod Autoscaler.
-
-Configuration:
-
-```text
-Minimum replicas: 2
-Maximum replicas: 6
-CPU target:       50%
-```
-
-The HPA continuously evaluates CPU utilisation and automatically adjusts the Deployment replica count.
-
-Apply:
-
-```bash
-kubectl apply -f kubernetes/hpa.yaml
-```
-
-Monitor:
-
-```bash
-kubectl get hpa
-```
-
----
-
-# Autoscaling Test
-
-Horizontal autoscaling was tested using a dedicated load-generator pod.
-
-Under normal conditions:
-
-```text
-CPU: approximately 3%
-Replicas: 2
-```
-
-During the load test, CPU usage rose above the configured 50% target.
-
-Observed utilisation exceeded:
-
-```text
-100% of requested CPU
-```
-
-Kubernetes automatically scaled the application from:
-
-```text
-2 pods
-```
-
-to:
-
-```text
-6 pods
-```
-
-After the load-generator pod was removed, CPU utilisation decreased.
-
-Following the HPA scale-down stabilisation period, Kubernetes automatically returned the Deployment to:
-
-```text
-2 pods
-```
-
-This validated the complete autoscaling lifecycle:
-
-```text
-Normal Load
-    │
-    ▼
-2 Pods
-    │
-    ▼
-CPU Increases
-    │
-    ▼
-HPA Detects High Utilisation
-    │
-    ▼
-Scale Up
-    │
-    ▼
-6 Pods
-    │
-    ▼
-Load Removed
-    │
-    ▼
-CPU Decreases
-    │
-    ▼
-Automatic Scale Down
-    │
-    ▼
-2 Pods
-```
-
----
-
-# CI/CD Pipeline
-
-KubeDeploy includes automated CI/CD workflows using GitHub Actions.
-
-The pipeline is triggered whenever code is pushed to the `main` branch.
-
-The CI workflow performs:
-
-```text
-GitHub Push
-    |
-    v
-Checkout Repository
-    |
-    v
-Set Up Python
-    |
-    v
-Install Dependencies
-    |
-    v
-Validate FastAPI Application
-    |
-    v
-Build Docker Image
-    |
-    v
-Validate Kubernetes Manifests
-    |
-    v
-CI Success
-```
-
-The Kubernetes manifests are validated using `kubeconform`, allowing schema validation to run without requiring a live Kubernetes cluster.
-
----
-
-# Container Image Publishing
-
-A separate GitHub Actions workflow automatically builds and publishes the KubeDeploy Docker image to GitHub Container Registry.
-
-The published image is:
-
-```text
-ghcr.io/kvngmuhy94/kubedeploy-kubernetes-platform:latest
-```
-
-The workflow also publishes a commit-specific image tag using the Git commit SHA.
-
-This provides both:
-
-- A convenient `latest` image
-- Immutable image versions tied to individual Git commits
-
----
-
-# Multi-Architecture Docker Images
-
-KubeDeploy publishes multi-platform Docker images supporting:
-
-```text
-linux/amd64
-linux/arm64
-```
-
-This allows the same container image to run on:
-
-- Intel/AMD Linux systems
-- Apple Silicon systems
-- Compatible Kubernetes environments
-
-GitHub Actions uses Docker Buildx and QEMU to build the multi-platform image.
-
----
-
-# Registry-Backed Kubernetes Deployment
-
-The Kubernetes Deployment uses the published GitHub Container Registry image:
-
-```yaml
-image: ghcr.io/kvngmuhy94/kubedeploy-kubernetes-platform:latest
-```
-
-This means Kubernetes no longer depends on a locally built Docker image.
-
-The deployment workflow is now:
-
-```text
-Application Code
-      |
-      v
-GitHub Repository
-      |
-      v
-GitHub Actions CI
-      |
-      +----> Python Validation
-      |
-      +----> Docker Build
-      |
-      +----> Kubernetes Manifest Validation
-      |
-      v
-GitHub Container Registry
-      |
-      v
-Multi-Architecture Docker Image
-      |
-      v
-Kubernetes Deployment
-      |
-      v
-Application Pods
-      |
-      v
-Health + Readiness Validation
-```
-
----
-
-# CI/CD Validation
-
-The automated pipeline was successfully tested for:
-
-- GitHub push triggers
-- Python dependency installation
-- FastAPI syntax validation
-- Docker image builds
-- Kubernetes manifest validation using kubeconform
-- GHCR authentication
-- Docker image publishing
-- Multi-platform image builds
-- ARM64 image pulling
-- Kubernetes deployment from GHCR
-- Successful rollout
-- Health endpoint validation
-- Readiness endpoint validation
-
-Final application checks returned:
-
-```json
+\`\`\`json
 {"status":"healthy"}
-```
-
-and:
-
-```json
-{"status":"ready"}
-```
+\`\`\`
 
 ---
 
-# Kubernetes Resources
-
-The project uses the following manifests:
-
-```text
-kubernetes/
-├── configmap.yaml
-├── deployment.yaml
-├── hpa.yaml
-├── secret.example.yaml
-└── service.yaml
-```
-
-The local secret file is intentionally excluded:
-
-```text
-kubernetes/secret.yaml
-```
-
----
-
-# Repository Structure
-
-```text
-kubedeploy-kubernetes-platform/
-│
-├── app/
-│   ├── main.py
-│   └── requirements.txt
-│
-├── kubernetes/
-│   ├── configmap.yaml
-│   ├── deployment.yaml
-│   ├── hpa.yaml
-│   ├── secret.example.yaml
-│   └── service.yaml
-│
-├── Dockerfile
-├── .gitignore
-└── README.md
-```
-
----
-
-# Deployment Workflow
-
-The application deployment workflow is:
-
-```text
-Application Code
-      │
-      ▼
-Docker Image
-      │
-      ▼
-Kubernetes Deployment
-      │
-      ▼
-Application Pods
-      │
-      ▼
-ClusterIP Service
-      │
-      ▼
-Health / Readiness Checks
-      │
-      ▼
-Metrics Server
-      │
-      ▼
-Horizontal Pod Autoscaler
-```
-
----
-
-# Operational Workflow
-
-Useful operational commands include:
-
-```bash
-kubectl get pods
-```
-
-```bash
-kubectl get services
-```
-
-```bash
-kubectl get deployments
-```
-
-```bash
-kubectl get hpa
-```
-
-```bash
-kubectl top pods
-```
-
-```bash
-kubectl describe deployment kubedeploy
-```
-
-```bash
-kubectl logs <pod-name>
-```
-
-```bash
-kubectl rollout status deployment/kubedeploy
-```
-
----
-
-# Skills Demonstrated
-
-KubeDeploy demonstrates practical experience with:
-
-- Kubernetes architecture
-- Docker containers
-- Kubernetes Deployments
-- Pods
-- Services
-- Replica management
-- Liveness probes
-- Readiness probes
-- ConfigMaps
-- Secrets
-- Resource requests
-- Resource limits
-- Metrics Server
-- Horizontal Pod Autoscaling
-- Self-healing
-- Service discovery
-- Rolling updates
-- Load testing
-- kubectl
-- Git
-- GitHub
--  CI/CD and Container Registry
-
-- GitHub Actions
-- Automated CI pipelines
-- Automated Docker builds
-- GitHub Container Registry
-- Docker Buildx
-- QEMU
-- Multi-architecture images
-- kubeconform
-- Registry-backed Kubernetes deployment
-
----
-
-# Project Validation
-
-The project was tested successfully for:
-
-- Docker image build
-- Local container execution
-- Health endpoint
-- Readiness endpoint
-- Kubernetes Deployment
-- Two-replica operation
-- ClusterIP Service
-- Port forwarding
-- Pod self-healing
-- Manual scaling from 2 to 4 pods
-- ConfigMap injection
-- Secret injection
-- CPU requests and limits
-- Memory requests and limits
-- Metrics Server
-- CPU monitoring
-- HPA creation
-- Automatic scale-up from 2 to 6 pods
-- Automatic scale-down from 6 to 2 pods
-
----
-
-# Project Status
-
-**KubeDeploy is operationally validated.**
-
-The application has successfully demonstrated deployment, configuration management, health checking, self-healing, resource management, metrics collection, and automatic horizontal scaling in Kubernetes.
-# Project Status
-
-**KubeDeploy is complete and operationally validated.**
-
-The project now demonstrates an end-to-end DevOps workflow covering application development, containerisation, Kubernetes orchestration, health monitoring, self-healing, autoscaling, automated CI validation, multi-architecture Docker image publishing, GitHub Container Registry integration, and Kubernetes deployment from a remote container registry.
-
----
-
-# Interview Summary
-
-KubeDeploy can be described as:
-
-> KubeDeploy is a Kubernetes portfolio project where I containerised a FastAPI application with Docker and deployed it to a local Kubernetes cluster. I configured Deployments, Services, readiness and liveness probes, ConfigMaps, Secrets, CPU and memory resource controls, Metrics Server and Horizontal Pod Autoscaling. I tested self-healing by deleting a pod and confirming Kubernetes automatically replaced it. I also generated CPU load and demonstrated the HPA automatically scaling the application from two pods to six and then back down to two once demand decreased.
-
----
-
-# Learning Outcomes
-
-The project provided hands-on experience with how Kubernetes maintains desired application state.
-
-It demonstrated the difference between simply running containers and orchestrating containers in a resilient environment.
-
-Key lessons included:
-
-- Kubernetes desired-state management
-- Automatic workload recovery
-- Horizontal application scaling
-- Service-based networking
-- Health-based traffic management
-- Runtime configuration
-- Secret management
-- Resource governance
-- Metrics-driven scaling
-- Declarative infrastructure configuration
-- Operational troubleshooting
-
----
-
-# Future Enhancements
-
-Potential future improvements include:
-
-- Kubernetes Ingress
-- TLS/HTTPS
-- Helm charts
-- CI/CD with GitHub Actions
-- Container registry integration
-- Prometheus monitoring
-- Grafana dashboards
-- Kubernetes namespaces
-- Network Policies
-- Persistent storage
-- AWS EKS deployment
-- Rolling deployment strategies
-
----
-
-# Author
-
-**Amos Agboola**
-
-Cloud / DevOps Portfolio Project
-
-KubeDeploy was built as a practical demonstration of Kubernetes deployment, orchestration, monitoring, scaling, configuration management, and operational recovery.
-
-## Monitoring and Observability
-
-KubeDeploy includes a full monitoring stack using Prometheus and Grafana.
-
-### Monitoring Stack
-
-- Prometheus
-- Grafana
-- kube-prometheus-stack
-- ServiceMonitor
-- Kubernetes metrics
-- Application metrics
-- CPU and memory monitoring
-- Health monitoring
-- Replica monitoring
-
-### Application Metrics
-
-The FastAPI application exposes Prometheus metrics through:
-
-```text
-/metrics
-
-```
-
-Prometheus automatically discovers the application using a Kubernetes `ServiceMonitor`.
-
-### Grafana Dashboard
-
-The Grafana dashboard includes:
-
-- KubeDeploy Request Rate
-- HTTP Responses by Status
-- 95th Percentile Response Time
-- Running KubeDeploy Pods
-- KubeDeploy CPU Usage
-- KubeDeploy Memory Usage
-- KubeDeploy HTTP Error Rate
-- KubeDeploy Service Health
-- Available Replicas
-
-The dashboard definition is stored in:
-
-```text
-monitoring/grafana/kubedeploy-dashboard.json
-```
-
-This allows the dashboard to be recreated rather than relying on a manually configured Grafana instance.
-
-### Prometheus ServiceMonitor
-
-The ServiceMonitor configuration is located at:
-
-```text
-kubernetes/servicemonitor.yaml
-```
-
-Prometheus scrapes KubeDeploy application metrics from `/metrics`.
 ## CI/CD Pipeline
 
-KubeDeploy uses GitHub Actions to provide an automated CI/CD workflow from source code changes through Kubernetes deployment.
-
-### Pipeline Flow
-
-```text
+\`\`\`text
 Developer Push
       |
       v
 GitHub Repository
       |
       v
-KubeDeploy CI
+Application Validation
       |
       v
-Docker Image Build
+Kubernetes Manifest Validation
+      |
+      v
+Docker Build
       |
       v
 GitHub Container Registry
-      |
-      v
-Self-Hosted GitHub Actions Runner
       |
       v
 Kubernetes Deployment
@@ -1060,78 +186,209 @@ Kubernetes Deployment
       v
 Rollout Verification
       |
-      v
-Application Health Check
+      +--------------------+
+      |                    |
+      v                    v
+Health Check        Automatic Rollback
+\`\`\`
+
+The pipeline has been tested for Docker builds, manifest validation, GHCR publishing, Kubernetes rollout verification and application health checks.
+
+Published image:
+
+\`\`\`text
+ghcr.io/kvngmuhy94/kubedeploy-kubernetes-platform:latest
+\`\`\`
+
+---
+
+## Kubernetes Resilience & Scaling
+
+KubeDeploy runs multiple replicas and uses Kubernetes desired-state reconciliation.
+
+Self-healing was tested by manually deleting an application pod and confirming that Kubernetes automatically created a replacement.
+
+Horizontal Pod Autoscaling was also tested under CPU load:
+
+\`\`\`text
+2 Pods
+   |
+   v
+CPU Load Increased
+   |
+   v
+HPA Triggered
+   |
+   v
+6 Pods
+   |
+   v
+Load Removed
+   |
+   v
+2 Pods
+\`\`\`
+
+---
 
 ## AWS EKS Deployment
 
-KubeDeploy is deployed to Amazon Elastic Kubernetes Service (EKS) in the `eu-west-2` region.
+KubeDeploy was successfully deployed to **Amazon EKS in eu-west-2**.
 
-The EKS environment includes:
+The tested environment included:
 
-- Amazon EKS managed Kubernetes control plane
+- Amazon EKS control plane
 - Managed EC2 worker node group
-- Kubernetes Deployment running multiple KubeDeploy replicas
+- Multiple KubeDeploy replicas
 - Kubernetes ConfigMap and Secret integration
 - Readiness and health checks
-- Kubernetes Service exposed through an AWS LoadBalancer
+- Kubernetes LoadBalancer Service
+- AWS Elastic Load Balancer
 - Public `/health` endpoint
-- GitHub Actions CI/CD integration
-- Automated deployment verification
-- Automatic rollback for failed deployments
+- GitHub Actions deployment integration
 
-### AWS Deployment Flow
+After validation, the temporary environment was intentionally destroyed to avoid unnecessary AWS costs.
 
-```text
-Developer Push
-      |
-      v
-GitHub Repository
-      |
-      v
-GitHub Actions CI
-      |
-      v
-Docker Image Build
-      |
-      v
-GitHub Container Registry
-      |
-      v
-AWS EKS Cluster
-      |
-      v
-Kubernetes Deployment
-      |
-      v
-KubeDeploy Pods
-      |
-      v
-Kubernetes LoadBalancer Service
-      |
-      v
-AWS Elastic Load Balancer
-      |
-      v
-Public Application Endpoint
-## Infrastructure as Code with Terraform
+---
 
-KubeDeploy can be provisioned on AWS EKS using Terraform.
+## Infrastructure as Code
 
-The Terraform configuration creates:
+Terraform provisions:
 
-- Dedicated VPC
-- Two public subnets across availability zones
-- Internet Gateway
-- Public route table and associations
-- EKS control plane
-- Managed EKS worker node group
-- IAM roles and required AWS policies
+- VPC
+- Public subnets
+- Internet gateway
+- Route table
+- IAM roles and policies
+- EKS cluster
+- Managed worker node group
 
-### Deploy
+Provision:
 
-```bash
+\`\`\`bash
 cd terraform
 terraform init
 terraform plan
 terraform apply
+\`\`\`
+
+Configure kubectl:
+
+\`\`\`bash
+aws eks update-kubeconfig \
+  --region eu-west-2 \
+  --name kubedeploy-eks
+\`\`\`
+
+Destroy:
+
+\`\`\`bash
+terraform destroy
+\`\`\`
+
+---
+
+## Monitoring & Observability
+
+KubeDeploy includes:
+
+- Prometheus
+- Grafana
+- kube-prometheus-stack
+- ServiceMonitor
+- Kubernetes metrics
+- Application metrics
+- Alertmanager
+
+Prometheus collects application metrics from:
+
+\`\`\`text
+/metrics
+\`\`\`
+
+Grafana dashboards include request rate, HTTP status codes, latency, pod availability, CPU usage, memory usage and service health.
+
+Alertmanager was successfully configured and tested with email notifications.
+
+---
+
+## Repository Structure
+
+\`\`\`text
+kubedeploy-kubernetes-platform/
+|
+├── .github/
+|   └── workflows/
+├── app/
+├── docs/
+├── kubernetes/
+├── monitoring/
+├── terraform/
+├── Dockerfile
+├── Makefile
+├── eks-cluster.yaml
+└── README.md
+\`\`\`
+
+---
+
+## Real Troubleshooting Experience
+
+This project included practical troubleshooting of:
+
+- Kubernetes contexts
+- Docker Desktop vs AWS EKS connectivity
+- AWS IAM permissions
+- AWS CLI authentication
+- Kubernetes LoadBalancer dependencies
+- Terraform destroy dependency errors
+- ELB security groups
+- VPC deletion
+- Prometheus targets
+- Alertmanager notifications
+- Kubernetes rollout verification
+- Application health checks
+
+---
+
+## Key Outcomes
+
+KubeDeploy successfully demonstrated:
+
+- Containerised FastAPI application
+- Automated Docker image publishing
+- Kubernetes orchestration
+- Multiple replicas
+- Self-healing
+- Horizontal autoscaling
+- Health and readiness checks
+- CI/CD automation
+- Prometheus monitoring
+- Grafana dashboards
+- Alertmanager notifications
+- AWS EKS deployment
+- Public AWS Load Balancer access
+- Terraform-managed cloud infrastructure
+- Successful infrastructure teardown
+
+---
+
+## Interview Summary
+
+> I built KubeDeploy as an end-to-end DevOps portfolio project around a FastAPI application. I containerised the application with Docker, deployed it to Kubernetes, implemented health checks, self-healing and horizontal autoscaling, and created CI/CD pipelines using GitHub Actions and GitHub Container Registry. I added Prometheus, Grafana and Alertmanager for observability and deployed the workload to AWS EKS. I provisioned the AWS networking, IAM and EKS infrastructure using Terraform, validated the application through an AWS Load Balancer, and safely destroyed the cloud environment after testing.
+
+---
+
+## Project Status
+
+**Complete and operationally validated.**
+
+The source code and Infrastructure as Code remain available so the environment can be recreated when required. The temporary AWS environment used for testing has been destroyed to control cloud costs.
+
+---
+
+## Author
+
+**Amos Agboola**
+
+Cloud / DevOps Portfolio Project
