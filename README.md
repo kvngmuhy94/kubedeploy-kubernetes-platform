@@ -31,7 +31,87 @@ The application is deployed using Kubernetes manifests and includes:
 The project was built and tested using Docker Desktop Kubernetes.
 
 Then paste this in its place:
+## Architecture
 
+```text
+                         ┌──────────────────────┐
+                         │      Developer       │
+                         └──────────┬───────────┘
+                                    │
+                                    ▼
+                         ┌──────────────────────┐
+                         │        GitHub        │
+                         │      Repository      │
+                         └──────────┬───────────┘
+                                    │
+                                    ▼
+                         ┌──────────────────────┐
+                         │    GitHub Actions    │
+                         │      CI / CD         │
+                         └──────────┬───────────┘
+                                    │
+                    ┌───────────────┼───────────────┐
+                    │               │               │
+                    ▼               ▼               ▼
+             ┌────────────┐  ┌────────────┐  ┌────────────┐
+             │ CI / Tests │  │Docker Build│  │ Kubernetes │
+             │ Validation │  │ + GHCR Push│  │ Deployment │
+             └────────────┘  └──────┬─────┘  └──────┬─────┘
+                                    │               │
+                                    └───────┬───────┘
+                                            ▼
+                                  ┌──────────────────┐
+                                  │     AWS EKS      │
+                                  │ kubedeploy-eks   │
+                                  └────────┬─────────┘
+                                           │
+                              ┌────────────┴────────────┐
+                              │                         │
+                              ▼                         ▼
+                     ┌────────────────┐        ┌────────────────┐
+                     │ KubeDeploy Pod │        │ KubeDeploy Pod │
+                     │       1        │        │       2        │
+                     └────────┬───────┘        └────────┬───────┘
+                              │                         │
+                              └────────────┬────────────┘
+                                           ▼
+                                  ┌──────────────────┐
+                                  │ Kubernetes       │
+                                  │ LoadBalancer     │
+                                  │ Service          │
+                                  └────────┬─────────┘
+                                           │
+                                           ▼
+                                  ┌──────────────────┐
+                                  │ AWS Load Balancer│
+                                  └────────┬─────────┘
+                                           │
+                                           ▼
+                                  ┌──────────────────┐
+                                  │ Public Endpoint  │
+                                  │     /health      │
+                                  └──────────────────┘
+
+
+Monitoring and Alerting
+
+KubeDeploy Pods
+      │
+      ▼
+┌───────────────┐
+│  Prometheus   │
+└───────┬───────┘
+        │
+        ├──────────────► Grafana
+        │                 Dashboards
+        │
+        ▼
+┌───────────────┐
+│ Alertmanager  │
+└───────┬───────┘
+        │
+        ▼
+   Email Alerts
 ```markdown
 # Solution Architecture
 
