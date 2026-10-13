@@ -950,3 +950,36 @@ kubernetes/servicemonitor.yaml
 ```
 
 Prometheus scrapes KubeDeploy application metrics from `/metrics`.
+## CI/CD Pipeline
+
+KubeDeploy uses GitHub Actions to provide an automated CI/CD workflow from source code changes through Kubernetes deployment.
+
+### Pipeline Flow
+
+```text
+Developer Push
+      |
+      v
+GitHub Repository
+      |
+      v
+KubeDeploy CI
+      |
+      v
+Docker Image Build
+      |
+      v
+GitHub Container Registry
+      |
+      v
+Self-Hosted GitHub Actions Runner
+      |
+      v
+Kubernetes Deployment
+      |
+      v
+Rollout Verification
+      |
+      v
+Application Health Check
+
