@@ -371,11 +371,6 @@ KubeDeploy successfully demonstrated:
 - Terraform-managed cloud infrastructure
 - Successful infrastructure teardown
 
----
-
-## Interview Summary
-
-> I built KubeDeploy as an end-to-end DevOps portfolio project around a FastAPI application. I containerised the application with Docker, deployed it to Kubernetes, implemented health checks, self-healing and horizontal autoscaling, and created CI/CD pipelines using GitHub Actions and GitHub Container Registry. I added Prometheus, Grafana and Alertmanager for observability and deployed the workload to AWS EKS. I provisioned the AWS networking, IAM and EKS infrastructure using Terraform, validated the application through an AWS Load Balancer, and safely destroyed the cloud environment after testing.
 
 ---
 
