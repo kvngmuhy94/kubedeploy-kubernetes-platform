@@ -26,10 +26,26 @@ jobs:
             kubedeploy=ghcr.io/kvngmuhy94/kubedeploy-kubernetes-platform:latest
 
       - name: Wait for rollout
+        id: rollout
+        continue-on-error: true
         run: |
           kubectl rollout status deployment/kubedeploy --timeout=180s
 
+      - name: Roll back failed deployment
+        if: steps.rollout.outcome == 'failure'
+        run: |
+          echo "Deployment failed. Rolling back..."
+          kubectl rollout undo deployment/kubedeploy
+          kubectl rollout status deployment/kubedeploy --timeout=180s
+
       - name: Verify deployment
+        if: steps.rollout.outcome == 'success'
         run: |
           kubectl get deployment kubedeploy
           kubectl get pods -l app=kubedeploy
+
+      - name: Fail workflow if deployment failed
+        if: steps.rollout.outcome == 'failure'
+        run: |
+          echo "Deployment failed and was rolled back."
+          exit 1
